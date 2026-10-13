@@ -1,0 +1,238 @@
+// Prisma Schema for Upliftra Network
+// SQLite database for immediate self-contained zero-config execution
+// Can be changed to "postgresql" or "mysql" by changing the provider.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id                 String   @id @default(uuid())
+  email              String   @unique
+  passwordHash       String
+  name               String
+  role               String   @default("student")
+  avatar             String?
+  headline           String?
+  bio                String?
+  location           String   @default("Pakistan")
+  universityName     String?
+  degree             String?
+  companyName        String?
+  skills             String   @default("[]") // JSON stringified array of skills
+  isVerified         Boolean  @default(false)
+  profileCompletion  Int      @default(60)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model Opportunity {
+  id                 String   @id @default(uuid())
+  title              String
+  organization       String
+  organizationLogo   String?
+  category           String
+  type               String?  @default("full_time")
+  location           String
+  city               String?  @default("Islamabad")
+  isRemote           Boolean  @default(false)
+  deadline           String?
+  salaryOrStipend    String?
+  description        String
+  requirements       String   @default("[]") // JSON stringified array
+  responsibilities   String   @default("[]") // JSON stringified array
+  requiredSkills     String   @default("[]") // JSON stringified array
+  applyUrl           String   @default("https://careers.upliftra.pk")
+  verificationStatus String   @default("verified")
+  views              Int      @default(0)
+  applicantCount     Int      @default(0)
+  postedByUserId     String?
+  postedByRole       String?
+  isFeatured         Boolean  @default(false)
+  createdAt          DateTime @default(now())
+
+  applications       Application[]
+}
+
+model Application {
+  id                 String      @id @default(uuid())
+  opportunityId      String
+  opportunity        Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  userId             String?
+  applicantName      String
+  applicantEmail     String
+  applicantPhone     String?
+  applicantPortfolio String?
+  resumeUrl          String?
+  coverNote          String?
+  status             String      @default("pending") // pending, reviewing, shortlisted, rejected, accepted
+  createdAt          DateTime    @default(now())
+}
+
+model MentorProfile {
+  id                 String   @id @default(uuid())
+  userId             String?  @unique
+  name               String
+  email              String
+  title              String
+  company            String
+  avatar             String
+  expertise          String   @default("[]") // JSON
+  skills             String   @default("[]") // JSON
+  industry           String   @default("Technology")
+  experienceYears    Int      @default(5)
+  education          String   @default("Bachelor in Computing")
+  mentoringTopics    String   @default("[]") // JSON
+  availability       String   @default("Open for Mentees")
+  preferredMenteeType String? @default("Students & Early Career Professionals")
+  languages          String   @default("[\"English\", \"Urdu\"]")
+  sessionPreferences String   @default("[\"1-on-1 Video\", \"Resume Review\"]")
+  bio                String
+  rating             Float    @default(5.0)
+  reviewCount        Int      @default(0)
+  totalMenteesHelped Int      @default(0)
+  isVerified         Boolean  @default(true)
+  location           String   @default("Pakistan")
+  createdAt          DateTime @default(now())
+}
+
+model MentorshipRequest {
+  id            String   @id @default(uuid())
+  menteeId      String
+  menteeName    String
+  menteeAvatar  String?
+  menteeRole    String
+  mentorId      String
+  mentorName    String
+  status        String   @default("pending") // pending, accepted, rejected, completed
+  message       String
+  goals         String
+  requestedDate String
+  scheduledTime String?
+  meetingLink   String?
+  sessionNotes  String?
+  rating        Float?
+  createdAt     DateTime @default(now())
+}
+
+model Course {
+  id               String   @id @default(uuid())
+  title            String
+  category         String
+  level            String   @default("Beginner")
+  duration         String   @default("4 Weeks")
+  instructor       String
+  instructorTitle  String?
+  instructorAvatar String?
+  organization     String   @default("Upliftra Academy")
+  thumbnail        String?
+  description      String
+  rating           Float    @default(4.9)
+  enrolledCount    Int      @default(0)
+  skillsEarned     String   @default("[]") // JSON
+  modules          String   @default("[]") // JSON
+  createdAt        DateTime @default(now())
+}
+
+model CourseEnrollment {
+  id               String   @id @default(uuid())
+  userId           String
+  courseId         String
+  progress         Int      @default(0)
+  completedLessons String   @default("[]") // JSON
+  certificateId    String?
+  createdAt        DateTime @default(now())
+}
+
+model EventItem {
+  id              String   @id @default(uuid())
+  title           String
+  category        String
+  format          String   @default("virtual") // virtual, physical, hybrid
+  date            String
+  time            String
+  location        String
+  coverImage      String?
+  description     String
+  registeredCount Int      @default(0)
+  organizer       String?  @default("Upliftra Community")
+  createdAt       DateTime @default(now())
+}
+
+model EventRegistration {
+  id        String   @id @default(uuid())
+  eventId   String
+  userId    String
+  name      String
+  email     String
+  createdAt DateTime @default(now())
+}
+
+model Post {
+  id           String    @id @default(uuid())
+  title        String
+  content      String
+  authorId     String
+  authorName   String
+  authorRole   String
+  authorAvatar String?
+  tags         String    @default("[]") // JSON
+  upvotes      Int       @default(0)
+  createdAt    DateTime  @default(now())
+
+  comments     Comment[]
+}
+
+model Comment {
+  id           String   @id @default(uuid())
+  postId       String
+  post         Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorId     String
+  authorName   String
+  authorRole   String
+  authorAvatar String?
+  content      String
+  createdAt    DateTime @default(now())
+}
+
+model Startup {
+  id           String   @id @default(uuid())
+  name         String
+  logo         String?
+  tagline      String
+  description  String
+  industry     String
+  stage        String   @default("Seed")
+  founderName  String
+  founderRole  String?  @default("Co-Founder & CEO")
+  website      String?
+  location     String   @default("Pakistan")
+  isHiring     Boolean  @default(true)
+  openRoles    String   @default("[]") // JSON
+  createdAt    DateTime @default(now())
+}
+
+model DirectMessage {
+  id         String   @id @default(uuid())
+  senderId   String
+  receiverId String
+  content    String
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+}
+
+model Notification {
+  id          String   @id @default(uuid())
+  userId      String
+  title       String
+  description String
+  type        String   @default("system")
+  actionUrl   String?
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
